@@ -1,6 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import csv
+import time
+import tkinter
+import tkinter.messagebox
 
 # Create the fake head to make amazon think that we are a legit browser
 head = {
@@ -13,31 +16,46 @@ csvreader = csv.reader(file)
 # Skip the csv header
 next(csvreader)
 
-# For every row extract the URL and the price target
+# Acquire all the csv data
+rows = []
 for row in csvreader:
+    rows.append(row)
 
-    # Extract the data
-    URL = row[0]
-    threshold = row[1]
+# Create the notify window
+window = tkinter.Tk()
+window.wm_withdraw()
 
-    website = requests.get(URL, headers=head)
-    beautifier = BeautifulSoup(website.content, "html.parser")
-    # print(beautifier.prettify())
+while True:
+    # For every row extract the URL and the price target
+    for row in rows:
 
-    # Find the actual title of the object
-    title = beautifier.find(id="productTitle").get_text()
+        # Extract the data
+        URL = row[0]
+        threshold = row[1]
 
-    # Find the div containing the price
-    prices = beautifier.find(id="corePriceDisplay_desktop_feature_div")
+        website = requests.get(URL, headers=head)
+        beautifier = BeautifulSoup(website.content, "html.parser")
+        # print(beautifier.prettify())
 
-    # Find the classes with the actual price inside
-    price = prices.find_all("span", {"class": "a-offscreen"})[0]
+        # Find the actual title of the object
+        title = beautifier.find(id="productTitle").get_text()
 
-    # Extract the text from the class
-    price = str(price.get_text())
+        # Find the div containing the price
+        prices = beautifier.find(id="corePriceDisplay_desktop_feature_div")
 
-    # At this point we have the text with the object price and now it needs to be extracted in float form
-    price = float(price[0: len(price) - 1].replace(",", "."))
+        # Find the classes with the actual price inside
+        price = prices.find_all("span", {"class": "a-offscreen"})[0]
 
-    if(price < float(threshold)):
-        print(title + " Is below the threshold! The current price is: " + price)
+        # Extract the text from the class
+        price = str(price.get_text())
+
+        # At this point we have the text with the object price and now it needs to be extracted in float form
+        price = float(price[0: len(price) - 1].replace(",", "."))
+
+        # Confront the prices
+        if(price < float(threshold)):
+            window.bell()
+            tkinter.messagebox.showinfo(title=title, message=(
+                "Is below the threshold! \nThe current price is: " + str(price) + "\nThe threshold price is: " + threshold))
+    # Sleep for some time
+    time.sleep(3600)

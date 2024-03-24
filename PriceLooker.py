@@ -50,13 +50,13 @@ while True:
             # print(beautifier.prettify())
 
             # Find the actual title of the object
-            title = beautifier.find(id="productTitle").get_text()
+            title = beautifier.find(id="apex_desktop").get_text()
 
             # Find the div containing the price
             prices = beautifier.find(id="corePriceDisplay_desktop_feature_div")
 
             # Find the classes with the actual price inside
-            price = prices.find_all("span", {"class": "a-offscreen"})[0]
+            price = prices.find_all("span", {"class": "a-price-whole"})[0]
 
             # Extract the text from the class
             price = str(price.get_text())
